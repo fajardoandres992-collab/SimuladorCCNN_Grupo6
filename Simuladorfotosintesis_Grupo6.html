@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador 3D: Fotosíntesis en Ecuador - UBE</title>
+<style>
+  :root {
+    --ube-rojo: #d5001c;
+    --verde: #2e7d32; --verde-oscuro: #1b5e20; --verde-claro: #a5d6a7;
+    --amarillo: #fdd835; --naranja: #fb8c00; --azul: #1565c0;
+    --celeste: #29b6f6; --rojo: #c62828; --morado: #6a1b9a;
+    --gris: #f5f5f5; --borde: #d0d0d0; --texto: #212121;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(180deg, #e1f5fe 0%, #e8f5e9 100%);
+    color: var(--texto); padding: 16px; min-height: 100vh;
+  }
+  .contenedor {
+    max-width: 1140px; margin: 0 auto; background: white;
+    border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); padding: 24px;
+  }
+  
+  /* BANNER INSTITUCIONAL UBE */
+  .header-institucional {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; margin-bottom: 14px; background: #ffffff;
+    border-radius: 14px; border: 1px solid #eeeeee;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+    border-left: 6px solid var(--ube-rojo);
+    flex-wrap: wrap; gap: 16px;
+  }
+  .ube-brand {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .ube-logo-img {
+    height: 68px; width: auto; object-fit: contain; display: block;
+  }
+  .ube-logo-svg {
+    height: 68px; width: auto; display: block;
+  }
+  .ube-badge-academico {
+    text-align: right; font-size: 0.85em; color: #444;
+    border-right: 3px solid var(--verde); padding-right: 12px;
+  }
+  .ube-badge-academico strong {
+    display: block; color: var(--ube-rojo); font-size: 1.05em;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  /* ENCABEZADO DEL SIMULADOR */
+  .encabezado {
+    background: linear-gradient(135deg, #1b5e20, #2e7d32, #43a047);
+    color: white; border-radius: 16px; padding: 18px 24px;
+    margin-bottom: 18px; text-align: center;
+    box-shadow: 0 4px 14px rgba(27, 94, 32, 0.3);
+  }
+  .encabezado h1 { font-size: 1.65em; margin-bottom: 8px; }
+  .encabezado .info-linea {
+    font-size: 0.9em; display: flex; justify-content: center;
+    gap: 12px; flex-wrap: wrap;
+  }
+  .encabezado .info-linea span {
+    background: rgba(255,255,255,0.18); padding: 5px 14px; border-radius: 20px;
+    font-weight: 500;
+  }
+
+  /* PESTAÑAS PEDAGÓGICAS */
+  .tabs-nav {
+    display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px; flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 10px 20px; border: none; border-radius: 12px;
+    background: #eeeeee; color: #555; font-weight: 700; font-size: 0.92em;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+  }
+  .tab-btn:hover { background: #e0f2f1; color: var(--verde-oscuro); }
+  .tab-btn.activo {
+    background: var(--verde); color: white;
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+  }
+  .tab-contenido { display: none; }
+  .tab-contenido.activo { display: block; }
+
+  /* BANNER DE MISIÓN ACTIVA */
+  .mision-activa-banner {
+    display: none; background: linear-gradient(135deg, #ede7f6, #d1c4e9);
+    border-left: 5px solid var(--morado); padding: 12px 16px;
+    border-radius: 10px; margin-bottom: 16px; align-items: center;
+    justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .mision-activa-banner.visible { display: flex; }
+  .mision-activa-banner .mision-texto { font-size: 0.92em; color: #311b92; }
+  .mision-activa-banner .badge-estado {
+    padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.82em;
+    background: #ffecb3; color: #e65100;
+  }
+  .mision-activa-banner .badge-estado.logrado {
+    background: #c8e6c9; color: #1b5e20;
+  }
+
+  /* CONFIGURACIÓN */
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .config-grupo { background: var(--gris); border-radius: 12px; padding: 12px; }
+  .config-grupo h3 {
+    font-size: 0.8em; color: #555; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .opciones { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opcion {
+    padding: 7px 14px; border: 2px solid var(--borde); border-radius: 20px;
+    background: white; cursor: pointer; font-size: 0.84em; font-weight: 600;
+    transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+  }
+  .opcion:hover { border-color: var(--verde); }
+  .opcion.activo { background: var(--verde); color: white; border-color: var(--verde); }
+
+  /* ECUACIÓN QUÍMICA EN VIVO */
+  .ecuacion-panel {
+    background: #f1f8e9; border: 2px dashed #81c784; border-radius: 12px;
+    padding: 10px 16px; margin-bottom: 14px; text-align: center;
+    display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 8px;
+  }
+  .eq-bloque {
+    padding: 6px 12px; border-radius: 8px; background: white;
+    font-size: 0.85em; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s, background 0.3s;
+  }
+  .eq-flecha { font-size: 1.3em; font-weight: 900; color: var(--verde); }
+  .fase-badge {
+    font-size: 0.75em; padding: 4px 10px; border-radius: 12px;
+    background: #e8f5e9; color: var(--verde-oscuro); font-weight: 600;
+  }
+
+  /* ESCENARIO 3D */
+  .escenario-panel {
+    border-radius: 16px; overflow: hidden;
+    border: 3px solid var(--borde); background: white; margin-bottom: 16px;
+  }
+  .planta-header {
+    padding: 10px 16px; background: var(--verde); color: white;
+    font-weight: 700; font-size: 1em;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+  }
+  .planta-header .zona-tag {
+    font-size: 0.82em; background: rgba(255,255,255,0.25);
+    padding: 4px 12px; border-radius: 12px; font-weight: 600;
+  }
+  
+  .planta-escena {
+    position: relative; height: 430px; overflow: hidden; background: #e1f5fe;
+  }
+  .planta-escena canvas { width: 100% !important; height: 100% !important; display: block; outline: none; }
+  
+  .instruccion-3d {
+    position: absolute; bottom: 10px; left: 12px;
+    background: rgba(0, 0, 0, 0.58); color: white;
+    padding: 5px 12px; border-radius: 14px; font-size: 0.75em;
+    pointer-events: none; backdrop-filter: blur(4px);
+  }
+  .leyenda-particulas {
+    position: absolute; top: 10px; right: 12px;
+    background: rgba(255, 255, 255, 0.9); color: #333;
+    padding: 6px 12px; border-radius: 12px; font-size: 0.75em;
+    display: flex; gap: 12px; font-weight: 600;
+    pointer-events: none; box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .punto-o2 { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #29b6f6; margin-right: 4px; vertical-align: middle; }
+  .punto-co2 { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #757575; margin-right: 4px; vertical-align: middle; }
+  .punto-h2o { display: inline-block; width: 4px; height: 10px; border-radius: 2px; background: #0288d1; margin-right: 4px; vertical-align: middle; }
+
+  /* CONTROLES */
+  .controles-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 12px; padding: 16px; background: #fafafa; border-top: 1px solid #eee;
+  }
+  .control-mini label {
+    display: flex; justify-content: space-between;
+    font-size: 0.75em; font-weight: 600; color: #555; margin-bottom: 4px;
+  }
+  .control-mini input[type="range"] { width: 100%; accent-color: var(--verde); cursor: pointer; height: 6px; }
+  .control-mini input.temp { accent-color: var(--rojo); }
+  .control-mini input.hum { accent-color: var(--azul); }
+
+  /* MÉTRICAS */
+  .metricas {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 8px; padding: 14px; background: white; border-top: 1px solid #eee;
+  }
+  .metrica { text-align: center; padding: 8px; border-radius: 8px; background: var(--gris); }
+  .metrica .val { font-size: 1.25em; font-weight: 700; color: var(--verde); }
+  .metrica .lbl { font-size: 0.68em; color: #666; text-transform: uppercase; margin-top: 4px; }
+  .metrica.oxi .val { color: var(--celeste); }
+  .metrica.glu .val { color: var(--naranja); }
+  .metrica.efi .val { color: var(--verde); }
+  .metrica.temp .val { color: var(--rojo); }
+  .metrica.estoma .val { color: var(--morado); font-size: 1.05em; }
+
+  /* ESTADO Y RETRO */
+  .estado-planta {
+    padding: 10px; background: linear-gradient(135deg, #f1f8e9, #e8f5e9);
+    border-top: 1px solid #c8e6c9; text-align: center;
+    font-size: 0.98em; font-weight: 600; color: #444;
+  }
+  .emoji-estado { font-size: 1.4em; margin-right: 6px; vertical-align: middle; }
+  .retro {
+    background: #fff8e1; border-left: 4px solid var(--amarillo);
+    padding: 14px 18px; border-radius: 8px;
+    font-size: 0.93em; line-height: 1.5; margin-bottom: 16px;
+  }
+  .retro strong { color: var(--verde-oscuro); }
+
+  /* BOTONES */
+  .botones { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .btn {
+    padding: 10px 20px; border: none; border-radius: 10px;
+    font-size: 0.88em; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primario { background: var(--verde); color: white; }
+  .btn-primario:hover { background: var(--verde-oscuro); transform: translateY(-1px); }
+  .btn-morado { background: var(--morado); color: white; }
+  .btn-morado:hover { background: #4a148c; transform: translateY(-1px); }
+  .btn-secundario { background: #757575; color: white; }
+  .btn-secundario:hover { background: #424242; }
+
+  /* CICLO DÍA/NOCHE */
+  .ciclo-panel {
+    background: linear-gradient(135deg, #fff8e1, #ffecb3);
+    border-radius: 12px; padding: 10px 16px; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .ciclo-panel .info-ciclo { flex: 1; font-size: 0.88em; color: #555; }
+  .switch { position: relative; display: inline-block; width: 48px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider-switch {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ffb300; border-radius: 24px; transition: .3s;
+  }
+  .slider-switch:before {
+    position: absolute; content: ""; height: 18px; width: 18px;
+    left: 3px; bottom: 3px; background-color: white;
+    border-radius: 50%; transition: .3s;
+  }
+  .switch input:checked + .slider-switch { background-color: #283593; }
+  .switch input:checked + .slider-switch:before { transform: translateX(24px); }
+
+  /* EXPERIMENTOS GUIADOS */
+  .experimentos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+  .exp-card {
+    border: 2px solid var(--borde); border-radius: 14px; padding: 18px;
+    background: #fafafa; transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .exp-card.completado { border-color: #4caf50; background: #f1f8e9; }
+  .exp-card h4 { font-size: 1.05em; color: var(--verde-oscuro); margin-bottom: 8px; }
+  .exp-card p { font-size: 0.88em; color: #555; line-height: 1.45; margin-bottom: 12px; }
+  .exp-meta { font-size: 0.8em; background: #e8eaf6; color: #283593; padding: 8px 10px; border-radius: 8px; margin-bottom: 12px; font-weight: 600; }
+
+  /* BITÁCORA CIENTÍFICA */
+  .tabla-contenedor { overflow-x: auto; margin-top: 12px; }
+  table.bitacora { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  table.bitacora th, table.bitacora td { padding: 10px 12px; border-bottom: 1px solid #e0e0e0; text-align: center; }
+  table.bitacora th { background: var(--verde); color: white; font-weight: 600; }
+  table.bitacora tr:nth-child(even) { background: #f9f9f9; }
+
+  /* QUIZ */
+  .quiz-header {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #e8f5e9; padding: 14px 18px; border-radius: 12px; margin-bottom: 16px;
+  }
+  .pregunta-card {
+    background: #fafafa; border: 2px solid #e0e0e0; border-radius: 14px;
+    padding: 18px; margin-bottom: 14px;
+  }
+  .pregunta-card h4 { font-size: 1em; margin-bottom: 12px; color: #222; }
+  .opciones-quiz { display: grid; gap: 8px; }
+  .opcion-q {
+    padding: 10px 14px; border: 2px solid #d0d0d0; border-radius: 10px;
+    background: white; cursor: pointer; text-align: left; font-size: 0.88em;
+    font-weight: 600; transition: all 0.2s;
+  }
+  .opcion-q:hover:not(:disabled) { border-color: var(--azul); background: #e3f2fd; }
+  .opcion-q.correcta { background: #c8e6c9; border-color: #2e7d32; color: #1b5e20; }
+  .opcion-q.incorrecta { background: #ffcdd2; border-color: #c62828; color: #b71c1c; }
+  .explicacion-q {
+    display: none; margin-top: 10px; padding: 10px 14px;
+    border-radius: 8px; font-size: 0.85em; background: #fff8e1; border-left: 4px solid #ffb300;
+  }
+
+  @media (max-width: 768px) {
+    .header-institucional { justify-content: center; text-align: center; }
+    .ube-badge-academico { text-align: center; border-right: none; padding-right: 0; }
+    .config-grid, .experimentos-grid { grid-template-columns: 1fr; }
+    .controles-grid, .metricas { grid-template-columns: 1fr 1fr; }
+    .planta-escena { height: 340px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+
+  <!-- ENCABEZADO INSTITUCIONAL: UNIVERSIDAD BOLIVARIANA DEL ECUADOR -->
+  <div class="header-institucional">
+    <div class="ube-brand">
+      <!-- Intenta cargar el archivo UBE LOGO.png local; si no está en la carpeta, muestra el SVG vectorial idéntico -->
+      <img src="UBE LOGO.png" alt="Logo Universidad Bolivariana del Ecuador" class="ube-logo-img"
+           onerror="this.style.display='none'; document.getElementById('ubeSvgFallback').style.display='block';">
+      
+      <!-- Réplica vectorial exacta del logo oficial de la UBE integrada en el código -->
+      <svg id="ubeSvgFallback" class="ube-logo-svg" style="display:none;" viewBox="0 0 430 130" xmlns="http://www.w3.org/2000/svg">
+        <!-- Escudo rojo UBE -->
+        <path d="M 10,8 H 118 V 68 C 118,102 94,124 64,124 C 34,124 10,102 10,68 Z" fill="#d5001c"/>
+        <!-- Siglas UBE con serifa de bloque -->
+        <text x="64" y="48" text-anchor="middle" fill="#ffffff" font-family="Georgia, 'Times New Roman', serif" font-weight="900" font-size="33" letter-spacing="2">UBE</text>
+        <!-- Rama de olivo/laurel blanca -->
+        <g fill="#ffffff" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round">
+          <path d="M 52,110 C 66,102 76,84 82,62" fill="none" stroke-width="2.2"/>
+          <path d="M 60,102 C 54,94 55,86 62,82 C 65,90 64,96 60,102 Z"/>
+          <path d="M 67,92 C 61,84 63,75 70,71 C 72,79 71,86 67,92 Z"/>
+          <path d="M 74,80 C 69,71 72,63 78,59 C 80,67 78,74 74,80 Z"/>
+          <path d="M 65,101 C 73,99 80,93 82,86 C 74,87 68,93 65,101 Z"/>
+          <path d="M 72,89 C 80,86 87,80 89,73 C 81,74 75,81 72,89 Z"/>
+          <path d="M 82,62 C 80,55 84,49 88,46 C 89,53 86,59 82,62 Z"/>
+        </g>
+        <!-- Línea divisoria vertical roja -->
+        <line x1="148" y1="18" x2="148" y2="114" stroke="#d5001c" stroke-width="3.5"/>
+        <!-- Texto institucional UNIVERSIDAD BOLIVARIANA DEL ECUADOR -->
+        <text x="172" y="46" fill="#d5001c" font-family="'Times New Roman', Georgia, serif" font-size="31" font-weight="500" letter-spacing="1.2">UNIVERSIDAD</text>
+        <text x="172" y="80" fill="#d5001c" font-family="'Times New Roman', Georgia, serif" font-size="31" font-weight="500" letter-spacing="1.2">BOLIVARIANA</text>
+        <text x="172" y="114" fill="#d5001c" font-family="'Times New Roman', Georgia, serif" font-size="31" font-weight="500" letter-spacing="1.2">DEL ECUADOR</text>
+      </svg>
+    </div>
+
+    <div class="ube-badge-academico">
+      <strong>Universidad Bolivariana del Ecuador</strong>
+      <span>Laboratorio Virtual Interactivo • Ciencias Naturales</span>
+    </div>
+  </div>
+
+  <!-- ENCABEZADO DEL PROYECTO -->
+  <div class="encabezado">
+    <h1>🌿 Simulador 3D: Fotosíntesis en Ecosistemas del Ecuador</h1>
+    <div class="info-linea">
+      <span>🏛️ Universidad Bolivariana del Ecuador (UBE)</span>
+      <span>📚 Didáctica de la CCNN</span>
+      <span>👥 Grupo 6</span>
+      <span>👩‍🏫 Docente: Dra. Elizabeth Vergel</span>
+    </div>
+  </div>
+
+  <!-- NAVEGACIÓN POR PESTAÑAS -->
+  <div class="tabs-nav">
+    <button class="tab-btn activo" onclick="abrirTab('simulador', this)">🔬 Simulador 3D</button>
+    <button class="tab-btn" onclick="abrirTab('experimentos', this)">🧪 Experimentos Guiados (<span id="contExp">0/4</span>)</button>
+    <button class="tab-btn" onclick="abrirTab('bitacora', this)">📊 Bitácora de Datos (<span id="contBitacora">0</span>)</button>
+    <button class="tab-btn" onclick="abrirTab('quiz', this)">📝 Quiz de Evaluación</button>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- PESTAÑA 1: SIMULADOR 3D                                   -->
+  <!-- ========================================================= -->
+  <div id="tab-simulador" class="tab-contenido activo">
+
+    <div id="bannerMision" class="mision-activa-banner">
+      <div class="mision-texto" id="textoMisionActiva">Misión activa...</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span id="estadoMisionBadge" class="badge-estado">⏳ En progreso</span>
+        <button class="btn btn-secundario" style="padding:5px 10px; font-size:0.75em;" onclick="cancelarMision()">✖ Salir</button>
+      </div>
+    </div>
+
+    <div class="config-grid">
+      <div class="config-grupo">
+        <h3>🌱 1. Selecciona la Planta</h3>
+        <div class="opciones" id="opcionesPlanta"></div>
+      </div>
+      <div class="config-grupo">
+        <h3>🌍 2. Ecosistema del Ecuador</h3>
+        <div class="opciones" id="opcionesZona"></div>
+      </div>
+    </div>
+
+    <div class="ciclo-panel">
+      <div class="info-ciclo">
+        <strong>🌗 Fotoperiodo (Día / Noche):</strong> <span id="textoCiclo">Modo día — Fase luminosa y Ciclo de Calvin activos</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="toggleNoche" onchange="cambiarCiclo()">
+        <span class="slider-switch"></span>
+      </label>
+    </div>
+
+    <!-- Ecuación Química Dinámica -->
+    <div class="ecuacion-panel">
+      <span class="eq-bloque" id="eqCo2">6 CO₂</span>
+      <span>+</span>
+      <span class="eq-bloque" id="eqAgua">6 H₂O</span>
+      <span>+</span>
+      <span class="eq-bloque" id="eqLuz">☀️ Energía Lumínica</span>
+      <span class="eq-flecha">⟶</span>
+      <span class="eq-bloque" id="eqGlu">C₆H₁₂O₆ (Glucosa)</span>
+      <span>+</span>
+      <span class="eq-bloque" id="eqO2">6 O₂ ↑</span>
+      <span class="fase-badge" id="badgeFase">Cloroplasto: Activo</span>
+    </div>
+
+    <div class="escenario-panel">
+      <div class="planta-header">
+        <span id="nombrePlanta">🌻 Girasol Andino</span>
+        <span class="zona-tag" id="zonaTag">🏔️ Sierra</span>
+      </div>
+      
+      <div class="planta-escena" id="escenaUnica">
+        <div class="leyenda-particulas">
+          <span><i class="punto-o2"></i>O₂ liberado</span>
+          <span><i class="punto-co2"></i>CO₂ absorbido</span>
+          <span><i class="punto-h2o"></i>Precipitación</span>
+        </div>
+        <div class="instruccion-3d">🖱️ Arrastra para rotar 360° • Rueda para zoom</div>
+      </div>
+      
+      <div class="controles-grid">
+        <div class="control-mini"><label><span>☀️ Luz solar</span><span id="luzVal">70%</span></label><input type="range" id="luz" min="0" max="100" value="70"></div>
+        <div class="control-mini"><label><span>💨 CO₂ atmosférico</span><span id="co2Val">70%</span></label><input type="range" id="co2" min="0" max="100" value="70"></div>
+        <div class="control-mini"><label><span>💧 Agua (Riego/Lluvia)</span><span id="aguaVal">70%</span></label><input type="range" id="agua" min="0" max="100" value="70"></div>
+        <div class="control-mini"><label><span>🌡️ Temperatura</span><span id="tempVal">25 °C</span></label><input type="range" id="temp" class="temp" min="0" max="50" value="25"></div>
+        <div class="control-mini"><label><span>💦 Humedad relativa</span><span id="humVal">60%</span></label><input type="range" id="hum" class="hum" min="0" max="100" value="60"></div>
+      </div>
+
+      <div class="metricas">
+        <div class="metrica oxi"><div class="val" id="oxi">0</div><div class="lbl">O₂ (Burbujas/min)</div></div>
+        <div class="metrica glu"><div class="val" id="glu">0</div><div class="lbl">Glucosa (mg/min)</div></div>
+        <div class="metrica efi"><div class="val" id="efi">0%</div><div class="lbl">Eficiencia Fotosintética</div></div>
+        <div class="metrica temp"><div class="val" id="tempOpt">—</div><div class="lbl">T° Óptima Especie</div></div>
+        <div class="metrica estoma"><div class="val" id="estomasVal">Abiertos</div><div class="lbl">Estado Estomas</div></div>
+      </div>
+
+      <div class="estado-planta" id="estadoPlanta">
+        <span class="emoji-estado">😐</span> <span>Estado: Neutral</span>
+      </div>
+    </div>
+
+    <div class="retro" id="retro">
+      Ajusta las condiciones ambientales para analizar cómo influyen los factores abióticos del Ecuador en la fotosíntesis.
+    </div>
+
+    <div class="botones">
+      <button class="btn btn-primario" onclick="modoOptimo()">✨ Condiciones óptimas</button>
+      <button class="btn btn-morado" onclick="registrarEnBitacora()">📊 Registrar en Bitácora</button>
+      <button class="btn btn-secundario" onclick="reiniciar()">🔄 Reiniciar</button>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- PESTAÑA 2: EXPERIMENTOS GUIADOS                           -->
+  <!-- ========================================================= -->
+  <div id="tab-experimentos" class="tab-contenido">
+    <div class="retro" style="background:#e8eaf6; border-left-color:var(--morado);">
+      <strong>🧪 Laboratorio Práctico de CCNN (UBE):</strong> Selecciona una misión experimental. El simulador te llevará al escenario 3D y verificará automáticamente cuando logres el resultado biológico esperado.
+    </div>
+    <div class="experimentos-grid" id="listaExperimentos"></div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- PESTAÑA 3: BITÁCORA CIENTÍFICA                            -->
+  <!-- ========================================================= -->
+  <div id="tab-bitacora" class="tab-contenido">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+      <div>
+        <h3 style="color:var(--verde-oscuro);">📊 Registro de Observaciones Experimentales</h3>
+        <p style="font-size:0.85em; color:#666;">Compara cómo responden las distintas especies vegetales en las 4 regiones naturales del Ecuador.</p>
+      </div>
+      <button class="btn btn-secundario" onclick="limpiarBitacora()">🗑️ Limpiar Tabla</button>
+    </div>
+    <div class="tabla-contenedor">
+      <table class="bitacora">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Planta</th>
+            <th>Ecosistema</th>
+            <th>Ciclo</th>
+            <th>Luz</th>
+            <th>CO₂</th>
+            <th>Agua</th>
+            <th>Temp.</th>
+            <th>O₂ Prod.</th>
+            <th>Glucosa</th>
+            <th>Eficiencia</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBitacoraBody">
+          <tr><td colspan="11" style="color:#888; padding:24px;">Aún no has registrado datos. Usa el botón "📊 Registrar en Bitácora" dentro del simulador.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- PESTAÑA 4: QUIZ DE EVALUACIÓN                             -->
+  <!-- ========================================================= -->
+  <div id="tab-quiz" class="tab-contenido">
+    <div class="quiz-header">
+      <div>
+        <h3 style="color:var(--verde-oscuro);">📝 Evaluación Formativa: Fotosíntesis y Ecosistemas</h3>
+        <p style="font-size:0.85em; color:#555;">Responde las preguntas basándote en tus pruebas dentro del simulador 3D.</p>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:1.4em; font-weight:800; color:var(--verde);" id="puntajeQuiz">Aciertos: 0 / 5</div>
+        <button class="btn btn-secundario" style="padding:6px 12px; font-size:0.78em; margin-top:4px;" onclick="reiniciarQuiz()">🔄 Reintentar Quiz</button>
+      </div>
+    </div>
+    <div id="contenedorPreguntas"></div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// ============================================================
+// DATOS BIOLÓGICOS Y REGIONES NATURALES DEL ECUADOR
+// ============================================================
+const plantas = {
+  cactus: {
+    nombre: "Cactus (Opuntia / Cardón)", emoji: "🌵", color: 0x558b2f,
+    metabolismo: "CAM (abre estomas de noche, ahorra agua)",
+    pref: { luz: 95, co2: 50, agua: 15, temp: 35, hum: 15 },
+    tol: { luz: 0.3, co2: 0.6, agua: 0.4, hum: 0.5 },
+    tempOpt: 35, tempTol: 15
+  },
+  helecho: {
+    nombre: "Helecho Arbóreo", emoji: "🌿", color: 0x2e7d32,
+    metabolismo: "C3 de sotobosque (requiere sombra y alta humedad)",
+    pref: { luz: 35, co2: 70, agua: 85, temp: 20, hum: 85 },
+    tol: { luz: 0.5, co2: 0.5, agua: 0.3, hum: 0.3 },
+    tempOpt: 20, tempTol: 10
+  },
+  tropical: {
+    nombre: "Platanillo (Heliconia)", emoji: "🌴", color: 0x43a047,
+    metabolismo: "C3 megatérmico (alta radiación y lluvias constantes)",
+    pref: { luz: 80, co2: 75, agua: 80, temp: 30, hum: 85 },
+    tol: { luz: 0.4, co2: 0.4, agua: 0.3, hum: 0.3 },
+    tempOpt: 30, tempTol: 10
+  },
+  girasol: {
+    nombre: "Girasol Andino", emoji: "🌻", color: 0x689f38,
+    metabolismo: "Heliófila (alta demanda lumínica en valles interandinos)",
+    pref: { luz: 90, co2: 65, agua: 60, temp: 22, hum: 55 },
+    tol: { luz: 0.3, co2: 0.5, agua: 0.5, hum: 0.5 },
+    tempOpt: 22, tempTol: 12
+  }
+};
+
+const zonas = {
+  costa: {
+    nombre: "Costa (Litoral)", emoji: "🌴",
+    ambiente: { luz: 85, co2: 70, agua: 80, temp: 28, hum: 85 },
+    paisaje: {
+      cieloTop: 0x29b6f6, cieloBottom: 0xb3e5fc,
+      suelo: 0xe6cfa8, agua: 0x0288d1,
+      niebla: 0xb3e5fc, montanas: 0x43a047,
+      tipoSuelo: "arena_tropical"
+    }
+  },
+  sierra: {
+    nombre: "Sierra (Andes)", emoji: "🏔️",
+    ambiente: { luz: 75, co2: 60, agua: 55, temp: 15, hum: 55 },
+    paisaje: {
+      cieloTop: 0x42a5f5, cieloBottom: 0xe3f2fd,
+      suelo: 0x8d6e4c, agua: 0x546e7a,
+      niebla: 0xcfd8dc, montanas: 0x5d7052,
+      tipoSuelo: "paramo"
+    }
+  },
+  amazonia: {
+    nombre: "Amazonía (Oriente)", emoji: "🌳",
+    ambiente: { luz: 70, co2: 90, agua: 95, temp: 30, hum: 95 },
+    paisaje: {
+      cieloTop: 0x4db6ac, cieloBottom: 0xc8e6c9,
+      suelo: 0x4e342e, agua: 0x795548,
+      niebla: 0xa5d6a7, montanas: 0x1b5e20,
+      tipoSuelo: "selva"
+    }
+  },
+  galapagos: {
+    nombre: "Galápagos (Insular)", emoji: "🐢",
+    ambiente: { luz: 95, co2: 50, agua: 20, temp: 26, hum: 40 },
+    paisaje: {
+      cieloTop: 0x29b6f6, cieloBottom: 0xfff9c4,
+      suelo: 0x373737, agua: 0x0097a7,
+      niebla: 0xffe0b2, montanas: 0x4e342e,
+      tipoSuelo: "volcanica"
+    }
+  }
+};
+
+// ============================================================
+// EXPERIMENTOS GUIADOS Y QUIZ
+// ============================================================
+const experimentosData = [
+  {
+    id: 1,
+    titulo: "Misión 1: Adaptación Xerofítica en Galápagos",
+    desc: "Los cactus de Galápagos (Opuntia) están adaptados a suelos volcánicos áridos y fuerte radiación solar. Selecciona el Cactus en Galápagos y ajusta la temperatura y agua hasta alcanzar una eficiencia fotosintética de al menos 85%.",
+    metaTexto: "Objetivo: Planta = Cactus | Zona = Galápagos | Eficiencia ≥ 85%",
+    completado: false,
+    configInicial: { planta: "cactus", zona: "galapagos" },
+    verificar: (st) => st.planta === "cactus" && st.zona === "galapagos" && st.eficiencia >= 85
+  },
+  {
+    id: 2,
+    titulo: "Misión 2: Helada en el Páramo Andino",
+    desc: "En la Sierra ecuatoriana las heladas nocturnas o matutinas frenan la actividad enzimática (RuBisCO). Ubica la planta Tropical en la Sierra y baja la temperatura a menos de 8 °C para observar la inhibición enzimática por frío.",
+    metaTexto: "Objetivo: Planta = Tropical | Zona = Sierra | Temperatura < 8 °C",
+    completado: false,
+    configInicial: { planta: "tropical", zona: "sierra" },
+    verificar: (st) => st.planta === "tropical" && st.zona === "sierra" && st.temp < 8
+  },
+  {
+    id: 3,
+    titulo: "Misión 3: Sotobosque Húmedo de la Amazonía",
+    desc: "Los helechos viven bajo la sombra de los grandes árboles amazónicos donde la humedad es alta pero la luz directa es baja. Selecciona el Helecho en la Amazonía y ajusta la luz entre 25% y 45% para lograr una eficiencia ≥ 80%.",
+    metaTexto: "Objetivo: Planta = Helecho | Zona = Amazonía | Luz entre 25% y 45% | Eficiencia ≥ 80%",
+    completado: false,
+    configInicial: { planta: "helecho", zona: "amazonia" },
+    verificar: (st) => st.planta === "helecho" && st.zona === "amazonia" && st.luz >= 25 && st.luz <= 45 && st.eficiencia >= 80
+  },
+  {
+    id: 4,
+    titulo: "Misión 4: Fase Luminosa vs. Oscuridad",
+    desc: "Sin fotones de luz no ocurre la fotólisis del agua en los tilacoides. Activa el interruptor de 'Modo Noche' con cualquier planta para comprobar cómo cae la liberación de O₂.",
+    metaTexto: "Objetivo: Activar el interruptor de Modo Noche",
+    completado: false,
+    configInicial: { planta: "girasol", zona: "costa" },
+    verificar: (st) => st.modoNoche === true
+  }
+];
+
+const preguntasQuiz = [
+  {
+    pregunta: "1. ¿Qué ocurre con la producción de Oxígeno (O₂) cuando activas el 'Modo Noche' en el simulador?",
+    opciones: [
+      "Aumenta al doble porque la planta descansa.",
+      "Cae casi a cero porque la fotólisis del agua depende directamente de la luz solar (fase luminosa).",
+      "Se mantiene igual porque el O₂ proviene del CO₂ sin necesitar luz.",
+      "La planta empieza a producir nitrógeno líquido."
+    ],
+    correcta: 1,
+    explicacion: "Correcto: El O₂ se libera durante la fase luminosa en los tilacoides al romperse la molécula de agua (fotólisis) gracias a la energía lumínica."
+  },
+  {
+    pregunta: "2. Si llevas una planta Tropical (Heliconia) de la Amazonía a un páramo frío de la Sierra (< 8 °C), ¿por qué disminuye su fotosíntesis?",
+    opciones: [
+      "Porque las bajas temperaturas ralentizan e inhiben las enzimas fotosintéticas como la RuBisCO.",
+      "Porque en la Sierra no existe dióxido de carbono en el aire.",
+      "Porque el exceso de frío evapora instantáneamente los cloroplastos.",
+      "No disminuye; las plantas tropicales producen más glucosa a 0 °C."
+    ],
+    correcta: 0,
+    explicacion: "Exacto: La temperatura extrema baja reduce la energía cinética molecular e inactiva las enzimas del Ciclo de Calvin."
+  },
+  {
+    pregunta: "3. ¿Por qué el Cactus (Opuntia) prospera en el ecosistema seco de Galápagos mientras otras plantas se marchitan?",
+    opciones: [
+      "Porque no realiza fotosíntesis y se alimenta de roca volcánica.",
+      "Porque posee adaptaciones xerofíticas (tallos suculentos, espinas y metabolismo CAM que evita perder agua).",
+      "Porque necesita un 100% de humedad todo el día.",
+      "Porque carece de estomas en su epidermis."
+    ],
+    correcta: 1,
+    explicacion: "Muy bien: Los cactus almacenan agua en su parénquima acuífero, transforman sus hojas en espinas y regulan sus estomas para evitar la transpiración excesiva."
+  },
+  {
+    pregunta: "4. En el simulador, si la luz, el agua y la temperatura son óptimas pero bajas el CO₂ a 0%, ¿qué sucede con la síntesis de glucosa (C₆H₁₂O₆)?",
+    opciones: [
+      "Sigue produciendo glucosa normalmente usando solo luz.",
+      "Se detiene por la Ley del Factor Limitante: sin carbono inorgánico (CO₂) no puede fijarse glucosa en el Ciclo de Calvin.",
+      "La planta transforma el oxígeno en glucosa.",
+      "Aumenta la eficiencia al 100%."
+    ],
+    correcta: 1,
+    explicacion: "Correcto: El CO₂ es la fuente de átomos de carbono para sintetizar glucosa en el estroma del cloroplasto."
+  },
+  {
+    pregunta: "5. ¿Qué ventaja tiene el Helecho en el sotobosque de la Amazonía frente a niveles moderados/bajos de luz?",
+    opciones: [
+      "Está adaptado a captar luz difusa bajo el dosel arbóreo aprovechando la altísima humedad amazónica.",
+      "No utiliza clorofila para hacer fotosíntesis.",
+      "Solo vive en desiertos sin lluvia.",
+      "Congela el agua del suelo para sobrevivir."
+    ],
+    correcta: 0,
+    explicacion: "Así es: Las plantas umbrófilas (de sombra) como muchos helechos optimizan sus fotosistemas para funcionar con luz filtrada y alta humedad."
+  }
+];
+
+// ============================================================
+// ESTADO GLOBAL
+// ============================================================
+let plantaActual = "girasol";
+let zonaActual = "sierra";
+let modoNoche = false;
+let tasaGlobal = 0.7;
+let misionActivaId = null;
+let registrosBitacora = [];
+let respuestasUsuarioQuiz = {};
+
+let escena3D, camara3D, renderer3D, controles3D, paisaje3D, plantaPrincipal3D;
+let luzSolGlobal, luzAmbienteGlobal;
+let burbujas3D = [], co2Particulas3D = [], gotasLluvia3D = [];
+let animando3D = false;
+
+// ============================================================
+// INICIALIZACIÓN
+// ============================================================
+function init() {
+  const opP = document.getElementById("opcionesPlanta");
+  Object.entries(plantas).forEach(([key, p]) => {
+    opP.innerHTML += `<div class="opcion ${key === plantaActual ? 'activo' : ''}" data-planta="${key}">${p.emoji} ${p.nombre}</div>`;
+  });
+
+  const opZ = document.getElementById("opcionesZona");
+  Object.entries(zonas).forEach(([key, z]) => {
+    opZ.innerHTML += `<div class="opcion ${key === zonaActual ? 'activo' : ''}" data-zona="${key}">${z.emoji} ${z.nombre}</div>`;
+  });
+
+  document.querySelectorAll('[data-planta]').forEach(el => {
+    el.addEventListener("click", () => {
+      seleccionarPlantaUI(el.dataset.planta);
+      actualizarTodo(false);
+    });
+  });
+
+  document.querySelectorAll('[data-zona]').forEach(el => {
+    el.addEventListener("click", () => {
+      seleccionarZonaUI(el.dataset.zona);
+      aplicarAmbiente();
+      actualizarTodo(true);
+    });
+  });
+
+  ["luz", "co2", "agua", "temp", "hum"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => actualizarTodo(false));
+  });
+
+  renderizarExperimentos();
+  renderizarQuiz();
+  aplicarAmbiente();
+  iniciar3D();
+  actualizarTodo(true);
+}
+
+function seleccionarPlantaUI(key) {
+  plantaActual = key;
+  document.querySelectorAll('[data-planta]').forEach(e => {
+    e.classList.toggle("activo", e.dataset.planta === key);
+  });
+}
+
+function seleccionarZonaUI(key) {
+  zonaActual = key;
+  document.querySelectorAll('[data-zona]').forEach(e => {
+    e.classList.toggle("activo", e.dataset.zona === key);
+  });
+}
+
+function abrirTab(tabId, btnEl) {
+  document.querySelectorAll('.tab-contenido').forEach(el => el.classList.remove('activo'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('activo'));
+  document.getElementById('tab-' + tabId).classList.add('activo');
+  if (btnEl) btnEl.classList.add('activo');
+  if (tabId === 'simulador' && renderer3D) {
+    setTimeout(() => {
+      const cont = document.getElementById("escenaUnica");
+      if (cont.clientWidth && cont.clientHeight) {
+        camara3D.aspect = cont.clientWidth / cont.clientHeight;
+        camara3D.updateProjectionMatrix();
+        renderer3D.setSize(cont.clientWidth, cont.clientHeight);
+      }
+    }, 50);
+  }
+}
+
+function aplicarAmbiente() {
+  const zona = zonas[zonaActual];
+  document.getElementById("luz").value = zona.ambiente.luz;
+  document.getElementById("co2").value = zona.ambiente.co2;
+  document.getElementById("agua").value = zona.ambiente.agua;
+  document.getElementById("temp").value = zona.ambiente.temp;
+  document.getElementById("hum").value = zona.ambiente.hum;
+}
+
+// ============================================================
+// CÁLCULO BIOLÓGICO DE FOTOSÍNTESIS
+// ============================================================
+function factorTemperatura(tempActual, tempOptima, tolerancia) {
+  const diff = Math.abs(tempActual - tempOptima);
+  if (diff <= tolerancia * 0.5) return 1.0;
+  if (diff <= tolerancia) return 0.72;
+  if (diff <= tolerancia * 1.5) return 0.32;
+  return 0.05;
+}
+
+function factorHumedad(humActual, humOptima) {
+  const diff = Math.abs(humActual - humOptima) / 100;
+  return Math.max(0.15, 1 - diff);
+}
+
+function calcularFotosintesis(plantaKey, zonaKey, luz, co2, agua, temp, hum) {
+  const p = plantas[plantaKey];
+  const z = zonas[zonaKey];
+  const difLuz = Math.abs(luz - p.pref.luz) / 100;
+  const difCo2 = Math.abs(co2 - p.pref.co2) / 100;
+  const difAgua = Math.abs(agua - p.pref.agua) / 100;
+  const difTemp = Math.abs(temp - p.tempOpt) / 50;
+  const difHum = Math.abs(hum - p.pref.hum) / 100;
+
+  const adaptacionControles = Math.max(0, 1 - (difLuz * p.tol.luz + difCo2 * p.tol.co2 + difAgua * p.tol.agua + difTemp * 0.4 + difHum * p.tol.hum));
+
+  const difEcoAgua = Math.abs(z.ambiente.agua - p.pref.agua) / 100;
+  const difEcoTemp = Math.abs(z.ambiente.temp - p.tempOpt) / 50;
+  const compatEcosistema = Math.max(0.2, 1 - (difEcoAgua * 0.35 + difEcoTemp * 0.35));
+
+  const fLuz = luz / 100, fCo2 = co2 / 100, fAgua = plantaKey === "cactus" ? Math.min(1, (100 - Math.abs(agua - p.pref.agua)) / 100) : agua / 100;
+  const fTemp = factorTemperatura(temp, p.tempOpt, p.tempTol);
+  const fHum = factorHumedad(hum, p.pref.hum);
+
+  const minimo = Math.min(fLuz, fCo2, fAgua);
+  const promedio = (fLuz + fCo2 + fAgua) / 3;
+  let tasaBase = 0.65 * minimo + 0.35 * promedio;
+  let tasa = tasaBase * (0.35 + 0.65 * adaptacionControles) * fTemp * fHum;
+  
+  if (modoNoche) tasa *= 0.03;
+  
+  return { tasa: Math.max(0, Math.min(1, tasa)), compat: compatEcosistema, fTemp };
+}
+
+function estadoPlanta(tasa, fTemp) {
+  if (modoNoche) return { emoji: "🌙", texto: "Reposo nocturno — Respiración celular activa (sin fase luminosa)", color: "#283593" };
+  if (tasa > 0.75) return { emoji: "😊", texto: "Óptima — Alta asimilación de CO₂ y síntesis vigorosa de glucosa", color: "#2e7d32" };
+  if (tasa > 0.5) return { emoji: "🙂", texto: "Saludable — Fotosíntesis activa en cloroplastos", color: "#558b2f" };
+  if (tasa > 0.3) return { emoji: "😐", texto: "Moderada — Algún factor abiótico actúa como limitante", color: "#fb8c00" };
+  if (fTemp < 0.2) return { emoji: "🥶", texto: "Inhibición térmica — Enzimas (RuBisCO) inactivas por temperatura extrema", color: "#1565c0" };
+  return { emoji: "🥀", texto: "Estrés severo — Cierre estomático y fotosíntesis detenida", color: "#c62828" };
+}
+
+// ============================================================
+// ACTUALIZACIÓN DE INTERFAZ Y ECUACIÓN
+// ============================================================
+function actualizarTodo(reconstruirEscenario = false) {
+  const p = plantas[plantaActual];
+  const z = zonas[zonaActual];
+
+  const luz = +document.getElementById("luz").value;
+  const co2 = +document.getElementById("co2").value;
+  const agua = +document.getElementById("agua").value;
+  const temp = +document.getElementById("temp").value;
+  const hum = +document.getElementById("hum").value;
+
+  document.getElementById("luzVal").textContent = luz + "%";
+  document.getElementById("co2Val").textContent = co2 + "%";
+  document.getElementById("aguaVal").textContent = agua + "%";
+  document.getElementById("tempVal").textContent = temp + " °C";
+  document.getElementById("humVal").textContent = hum + "%";
+
+  const res = calcularFotosintesis(plantaActual, zonaActual, luz, co2, agua, temp, hum);
+  const tasa = res.tasa;
+  tasaGlobal = tasa;
+  const eficienciaPorc = Math.round(tasa * 100);
+
+  document.getElementById("oxi").textContent = Math.round(tasa * 80);
+  document.getElementById("glu").textContent = Math.round(tasa * 40);
+  document.getElementById("efi").textContent = eficienciaPorc + "%";
+  document.getElementById("tempOpt").textContent = p.tempOpt + " °C";
+
+  let estadoEstoma = "Abiertos";
+  if (modoNoche && plantaActual !== "cactus") estadoEstoma = "Cerrados (Noche)";
+  else if (modoNoche && plantaActual === "cactus") estadoEstoma = "Abiertos (CAM)";
+  else if (temp > 38 || (agua < 20 && plantaActual !== "cactus")) estadoEstoma = "Cerrados (Estrés)";
+  else if (hum < 25 && plantaActual !== "cactus") estadoEstoma = "Semi-cerrados";
+  document.getElementById("estomasVal").textContent = estadoEstoma;
+
+  document.getElementById("nombrePlanta").textContent = `${p.emoji} ${p.nombre} — ${p.metabolismo}`;
+  document.getElementById("zonaTag").textContent = `${z.emoji} Ecosistema: ${z.nombre}`;
+
+  document.getElementById("eqCo2").style.background = co2 > 30 ? "#c8e6c9" : "#ffcdd2";
+  document.getElementById("eqAgua").style.background = agua > 20 ? "#b3e5fc" : "#ffcdd2";
+  document.getElementById("eqLuz").style.background = (!modoNoche && luz > 25) ? "#fff59d" : "#e0e0e0";
+  document.getElementById("eqGlu").style.background = tasa > 0.4 ? "#ffe0b2" : "#f5f5f5";
+  document.getElementById("eqO2").style.background = tasa > 0.4 ? "#b3e5fc" : "#f5f5f5";
+  document.getElementById("badgeFase").textContent = modoNoche
+    ? "🌙 Sin Fase Luminosa (Solo respiración mitocondrial)"
+    : `☀️ Tilacoides + Ciclo de Calvin (${eficienciaPorc}%)`;
+
+  const estado = estadoPlanta(tasa, res.fTemp);
+  document.getElementById("estadoPlanta").innerHTML =
+    `<span class="emoji-estado">${estado.emoji}</span> <span style="color:${estado.color}">${estado.texto}</span>`;
+
+  let mensaje = `<strong>Análisis en ${z.nombre}:</strong> `;
+  if (eficienciaPorc >= 75) mensaje += `Condiciones excelentes para <em>${p.nombre}</em>. La fotólisis del agua en los tilacoides libera abundante O₂ y el Ciclo de Calvin fija carbono en glucosa eficientemente. `;
+  else if (eficienciaPorc < 35) mensaje += `Baja tasa fotosintética. `;
+  
+  if (modoNoche) mensaje += "En oscuridad los fotosistemas I y II no reciben fotones, deteniendo la producción de ATP y NADPH. ";
+  if (temp < 10) mensaje += "El frío andino ralentiza la cinética enzimática. ";
+  if (temp > 40) mensaje += "El calor excesivo provoca cierre estomático para evitar deshidratación y desnaturaliza proteínas. ";
+  if (plantaActual === "cactus" && agua > 65) mensaje += "¡Atención! El exceso de agua en un Cactus satura sus raíces y reduce su eficiencia. ";
+  if (plantaActual !== "cactus" && agua < 25) mensaje += "El déficit hídrico limita los electrones para la cadena transportadora y marchita los tejidos. ";
+  document.getElementById("retro").innerHTML = mensaje;
+
+  actualizar3D(p, z, tasa, temp, luz, co2, agua, hum, reconstruirEscenario);
+  verificarMisionActiva({ planta: plantaActual, zona: zonaActual, luz, co2, agua, temp, hum, eficiencia: eficienciaPorc, modoNoche });
+}
+
+// ============================================================
+// SISTEMA DE EXPERIMENTOS GUIADOS Y BITÁCORA
+// ============================================================
+function renderizarExperimentos() {
+  const cont = document.getElementById("listaExperimentos");
+  cont.innerHTML = "";
+  let completados = 0;
+
+  experimentosData.forEach(exp => {
+    if (exp.completado) completados++;
+    cont.innerHTML += `
+      <div class="exp-card ${exp.completado ? 'completado' : ''}">
+        <div>
+          <h4>${exp.completado ? '✅ ' : '🔬 '}${exp.titulo}</h4>
+          <p>${exp.desc}</p>
+          <div class="exp-meta">${exp.metaTexto}</div>
+        </div>
+        <button class="btn ${exp.completado ? 'btn-primario' : 'btn-morado'}" onclick="iniciarMision(${exp.id})">
+          ${exp.completado ? '🔄 Repetir Experimento' : '🚀 Iniciar Misión en 3D'}
+        </button>
+      </div>
+    `;
+  });
+  document.getElementById("contExp").textContent = `${completados}/${experimentosData.length}`;
+}
+
+function iniciarMision(id) {
+  const exp = experimentosData.find(e => e.id === id);
+  if (!exp) return;
+  misionActivaId = id;
+
+  seleccionarPlantaUI(exp.configInicial.planta);
+  seleccionarZonaUI(exp.configInicial.zona);
+  modoNoche = false;
+  document.getElementById("toggleNoche").checked = false;
+  aplicarAmbiente();
+
+  const banner = document.getElementById("bannerMision");
+  banner.classList.add("visible");
+  document.getElementById("textoMisionActiva").innerHTML = `<strong>${exp.titulo}:</strong> ${exp.metaTexto}`;
+
+  const btnSim = document.querySelectorAll('.tab-btn')[0];
+  abrirTab('simulador', btnSim);
+  actualizarTodo(true);
+}
+
+function verificarMisionActiva(estadoActual) {
+  if (!misionActivaId) return;
+  const exp = experimentosData.find(e => e.id === misionActivaId);
+  const badge = document.getElementById("estadoMisionBadge");
+  if (exp && exp.verificar(estadoActual)) {
+    exp.completado = true;
+    badge.className = "badge-estado logrado";
+    badge.innerHTML = "🎉 ¡Misión Completada!";
+    renderizarExperimentos();
+  } else {
+    badge.className = "badge-estado";
+    badge.innerHTML = "⏳ Ajusta los controles para cumplir la meta";
+  }
+}
+
+function cancelarMision() {
+  misionActivaId = null;
+  document.getElementById("bannerMision").classList.remove("visible");
+}
+
+function registrarEnBitacora() {
+  const luz = document.getElementById("luz").value;
+  const co2 = document.getElementById("co2").value;
+  const agua = document.getElementById("agua").value;
+  const temp = document.getElementById("temp").value;
+  const oxi = document.getElementById("oxi").textContent;
+  const glu = document.getElementById("glu").textContent;
+  const efi = document.getElementById("efi").textContent;
+
+  registrosBitacora.push({
+    num: registrosBitacora.length + 1,
+    planta: plantas[plantaActual].emoji + " " + plantas[plantaActual].nombre,
+    zona: zonas[zonaActual].emoji + " " + zonas[zonaActual].nombre,
+    ciclo: modoNoche ? "🌙 Noche" : "☀️ Día",
+    luz: luz + "%", co2: co2 + "%", agua: agua + "%", temp: temp + " °C",
+    oxi, glu: glu + " mg", efi
+  });
+
+  document.getElementById("contBitacora").textContent = registrosBitacora.length;
+  const tbody = document.getElementById("tablaBitacoraBody");
+  tbody.innerHTML = registrosBitacora.map(r => `
+    <tr>
+      <td><strong>${r.num}</strong></td>
+      <td>${r.planta}</td>
+      <td>${r.zona}</td>
+      <td>${r.ciclo}</td>
+      <td>${r.luz}</td>
+      <td>${r.co2}</td>
+      <td>${r.agua}</td>
+      <td>${r.temp}</td>
+      <td style="color:var(--azul); font-weight:700;">${r.oxi}</td>
+      <td style="color:var(--naranja); font-weight:700;">${r.glu}</td>
+      <td style="color:var(--verde); font-weight:700;">${r.efi}</td>
+    </tr>
+  `).join('');
+}
+
+function limpiarBitacora() {
+  registrosBitacora = [];
+  document.getElementById("contBitacora").textContent = "0";
+  document.getElementById("tablaBitacoraBody").innerHTML =
+    `<tr><td colspan="11" style="color:#888; padding:24px;">Bitácora vacía. Registra nuevas mediciones desde el simulador.</td></tr>`;
+}
+
+// ============================================================
+// SISTEMA DE QUIZ INTERACTIVO
+// ============================================================
+function renderizarQuiz() {
+  const cont = document.getElementById("contenedorPreguntas");
+  cont.innerHTML = preguntasQuiz.map((q, idx) => `
+    <div class="pregunta-card">
+      <h4>${q.pregunta}</h4>
+      <div class="opciones-quiz" id="opciones-q-${idx}">
+        ${q.opciones.map((op, opIdx) => `
+          <button class="opcion-q" onclick="responderQuiz(${idx}, ${opIdx}, this)">${op}</button>
+        `).join('')}
+      </div>
+      <div class="explicacion-q" id="exp-q-${idx}">${q.explicacion}</div>
+    </div>
+  `).join('');
+  actualizarPuntajeQuiz();
+}
+
+function responderQuiz(pregIdx, opIdx, btnEl) {
+  if (respuestasUsuarioQuiz[pregIdx] !== undefined) return;
+  respuestasUsuarioQuiz[pregIdx] = opIdx;
+
+  const q = preguntasQuiz[pregIdx];
+  const botones = document.querySelectorAll(`#opciones-q-${pregIdx} .opcion-q`);
+  botones.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correcta) b.classList.add("correcta");
+    else if (i === opIdx) b.classList.add("incorrecta");
+  });
+
+  const expDiv = document.getElementById(`exp-q-${pregIdx}`);
+  expDiv.style.display = "block";
+  actualizarPuntajeQuiz();
+}
+
+function actualizarPuntajeQuiz() {
+  let aciertos = 0;
+  Object.entries(respuestasUsuarioQuiz).forEach(([pIdx, rIdx]) => {
+    if (preguntasQuiz[pIdx].correcta === rIdx) aciertos++;
+  });
+  document.getElementById("puntajeQuiz").textContent = `Aciertos: ${aciertos} / ${preguntasQuiz.length}`;
+}
+
+function reiniciarQuiz() {
+  respuestasUsuarioQuiz = {};
+  renderizarQuiz();
+}
+
+// ============================================================
+// MOTOR 3D CON THREE.JS (MODELOS 3D + LLUVIA + FOTOTROPISMO)
+// ============================================================
+function iniciar3D() {
+  const contenedor = document.getElementById("escenaUnica");
+  const canvasPrevio = contenedor.querySelector("canvas");
+  if (canvasPrevio) canvasPrevio.remove();
+
+  const ancho = contenedor.clientWidth || 800;
+  const alto = contenedor.clientHeight || 430;
+
+  escena3D = new THREE.Scene();
+  camara3D = new THREE.PerspectiveCamera(50, ancho / alto, 0.1, 200);
+  camara3D.position.set(0, 3.2, 7.5);
+
+  renderer3D = new THREE.WebGLRenderer({ antialias: true });
+  renderer3D.setSize(ancho, alto);
+  renderer3D.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer3D.shadowMap.enabled = true;
+  renderer3D.shadowMap.type = THREE.PCFSoftShadowMap;
+  contenedor.insertBefore(renderer3D.domElement, contenedor.firstChild);
+
+  controles3D = new THREE.OrbitControls(camara3D, renderer3D.domElement);
+  controles3D.enableDamping = true;
+  controles3D.dampingFactor = 0.08;
+  controles3D.minDistance = 3.5;
+  controles3D.maxDistance = 16;
+  controles3D.maxPolarAngle = Math.PI / 2 - 0.03;
+  controles3D.target.set(0, 1.4, 0.5);
+  controles3D.enablePan = false;
+
+  luzAmbienteGlobal = new THREE.AmbientLight(0xffffff, 0.65);
+  escena3D.add(luzAmbienteGlobal);
+
+  luzSolGlobal = new THREE.DirectionalLight(0xfff5e0, 1.1);
+  luzSolGlobal.position.set(8, 15, 8);
+  luzSolGlobal.castShadow = true;
+  luzSolGlobal.shadow.mapSize.width = 1024;
+  luzSolGlobal.shadow.mapSize.height = 1024;
+  escena3D.add(luzSolGlobal);
+
+  escena3D.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.4));
+
+  paisaje3D = new THREE.Group();
+  escena3D.add(paisaje3D);
+
+  plantaPrincipal3D = new THREE.Group();
+  plantaPrincipal3D.position.set(0, 0, 1.2);
+  escena3D.add(plantaPrincipal3D);
+
+  const solMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.85, 24, 24),
+    new THREE.MeshBasicMaterial({ color: 0xfdd835 })
+  );
+  solMesh.position.set(6, 7.5, -8);
+  solMesh.name = "sol";
+  escena3D.add(solMesh);
+
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(1.35, 24, 24),
+    new THREE.MeshBasicMaterial({ color: 0xfdd835, transparent: true, opacity: 0.28 })
+  );
+  halo.position.copy(solMesh.position);
+  halo.name = "halo";
+  escena3D.add(halo);
+
+  escena3D.fog = new THREE.Fog(0xb3e5fc, 12, 65);
+
+  burbujas3D = [];
+  for (let i = 0; i < 35; i++) {
+    const b = new THREE.Mesh(
+      new THREE.SphereGeometry(0.06 + Math.random() * 0.05, 10, 10),
+      new THREE.MeshStandardMaterial({ color: 0x29b6f6, transparent: true, opacity: 0.85, emissive: 0x0288d1, emissiveIntensity: 0.4 })
+    );
+    b.position.set((Math.random() - 0.5) * 1.8, 0.5 + Math.random() * 3, 1.2 + (Math.random() - 0.5) * 1.8);
+    b.userData.velocidad = 0.01 + Math.random() * 0.015;
+    b.userData.offset = Math.random() * Math.PI * 2;
+    b.visible = false;
+    escena3D.add(b);
+    burbujas3D.push(b);
+  }
+
+  co2Particulas3D = [];
+  for (let i = 0; i < 25; i++) {
+    const c = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.07, 0),
+      new THREE.MeshStandardMaterial({ color: 0x757575, transparent: true, opacity: 0.65 })
+    );
+    c.position.set((Math.random() - 0.5) * 3.5, 1 + Math.random() * 3.5, 1.2 + (Math.random() - 0.5) * 3.5);
+    c.userData.velocidad = 0.008 + Math.random() * 0.012;
+    c.visible = false;
+    escena3D.add(c);
+    co2Particulas3D.push(c);
+  }
+
+  gotasLluvia3D = [];
+  const geoGota = new THREE.CylinderGeometry(0.012, 0.012, 0.28, 4);
+  const matGota = new THREE.MeshBasicMaterial({ color: 0x0288d1, transparent: true, opacity: 0.55 });
+  for (let i = 0; i < 60; i++) {
+    const gota = new THREE.Mesh(geoGota, matGota);
+    gota.position.set((Math.random() - 0.5) * 12, Math.random() * 8, (Math.random() - 0.5) * 10);
+    gota.userData.vel = 0.14 + Math.random() * 0.08;
+    gota.visible = false;
+    escena3D.add(gota);
+    gotasLluvia3D.push(gota);
+  }
+
+  const resizeObserver = new ResizeObserver(() => {
+    const w = contenedor.clientWidth, h = contenedor.clientHeight;
+    if (w && h && renderer3D) {
+      camara3D.aspect = w / h;
+      camara3D.updateProjectionMatrix();
+      renderer3D.setSize(w, h);
+    }
+  });
+  resizeObserver.observe(contenedor);
+
+  if (!animando3D) {
+    animando3D = true;
+    animar3D();
+  }
+}
+
+function construirPlantaPrincipal3D(plantaKey, tasa, agua) {
+  if (!plantaPrincipal3D) return;
+  while (plantaPrincipal3D.children.length > 0) {
+    plantaPrincipal3D.remove(plantaPrincipal3D.children[0]);
+  }
+
+  const p = plantas[plantaKey];
+  const colorSano = new THREE.Color(p.color);
+  const colorMarchito = new THREE.Color(0x9e7b4f);
+  const factorSalud = Math.min(1, Math.max(0, (tasa * 0.8) + (agua / 100 * 0.2)));
+  const colorActual = colorMarchito.clone().lerp(colorSano, factorSalud);
+
+  const escalaCrecimiento = 0.75 + tasa * 0.55;
+  const decaimiento = (1 - factorSalud) * 0.45;
+
+  const baseMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.75, 1.05, 0.22, 16),
+    new THREE.MeshStandardMaterial({ color: agua < 25 ? 0x8d6e63 : 0x3e2723, roughness: 0.95 })
+  );
+  baseMesh.position.y = 0.08;
+  baseMesh.receiveShadow = true;
+  plantaPrincipal3D.add(baseMesh);
+
+  const aroMesh = new THREE.Mesh(
+    new THREE.RingGeometry(1.08, 1.18, 32),
+    new THREE.MeshBasicMaterial({ color: tasa > 0.5 ? 0x4caf50 : (tasa > 0.25 ? 0xff9800 : 0xe53935), side: THREE.DoubleSide })
+  );
+  aroMesh.rotation.x = -Math.PI / 2;
+  aroMesh.position.y = 0.03;
+  plantaPrincipal3D.add(aroMesh);
+
+  const grupoEspecimen = new THREE.Group();
+  grupoEspecimen.name = "especimenAnima";
+  grupoEspecimen.position.y = 0.15;
+
+  const matVerde = new THREE.MeshStandardMaterial({ color: colorActual, roughness: 0.65, side: THREE.DoubleSide });
+
+  if (plantaKey === "girasol") {
+    const altoTallo = 2.0 * escalaCrecimiento;
+    const tallo = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, altoTallo, 12), matVerde);
+    tallo.position.y = altoTallo / 2;
+    tallo.castShadow = true;
+    grupoEspecimen.add(tallo);
+
+    for (let i = 0; i < 4; i++) {
+      const hGrupo = new THREE.Group();
+      const lado = i % 2 === 0 ? 1 : -1;
+      hGrupo.position.set(0, altoTallo * (0.28 + i * 0.16), 0);
+      const hojaGeo = new THREE.SphereGeometry(0.28 * escalaCrecimiento, 12, 10);
+      hojaGeo.scale(1.5, 0.15, 0.85);
+      const hoja = new THREE.Mesh(hojaGeo, matVerde);
+      hoja.position.x = lado * 0.32 * escalaCrecimiento;
+      hoja.rotation.z = -lado * (0.2 + decaimiento);
+      hoja.castShadow = true;
+      hGrupo.add(hoja);
+      hGrupo.rotation.y = i * 0.8;
+      grupoEspecimen.add(hGrupo);
+    }
+
+    const cabeza = new THREE.Group();
+    cabeza.name = "cabezaGirasol";
+    cabeza.position.set(0, altoTallo, 0);
+    cabeza.rotation.x = 0.35 + decaimiento * 1.4;
+
+    const radioCentro = 0.35 * escalaCrecimiento;
+    const centro = new THREE.Mesh(
+      new THREE.CylinderGeometry(radioCentro, radioCentro * 0.9, 0.12, 20),
+      new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.9 })
+    );
+    centro.rotation.x = Math.PI / 2;
+    cabeza.add(centro);
+
+    const colorPetalo = new THREE.Color(0xd4a359).lerp(new THREE.Color(0xfdd835), factorSalud);
+    const petaloMat = new THREE.MeshStandardMaterial({ color: colorPetalo, roughness: 0.5 });
+    for (let i = 0; i < 16; i++) {
+      const ang = (i / 16) * Math.PI * 2;
+      const petGeo = new THREE.SphereGeometry(0.16 * escalaCrecimiento, 10, 8);
+      petGeo.scale(0.55, 1.8, 0.15);
+      const petalo = new THREE.Mesh(petGeo, petaloMat);
+      const dist = radioCentro + 0.18 * escalaCrecimiento;
+      petalo.position.set(Math.cos(ang) * dist, Math.sin(ang) * dist, -0.02);
+      petalo.rotation.z = ang - Math.PI / 2;
+      petalo.rotation.x = -decaimiento * 0.8;
+      cabeza.add(petalo);
+    }
+    grupoEspecimen.add(cabeza);
+  }
+  else if (plantaKey === "cactus") {
+    const altoTronco = 2.1 * escalaCrecimiento;
+    const radioTronco = 0.34 * (0.75 + factorSalud * 0.35);
+
+    const tronco = new THREE.Mesh(new THREE.CylinderGeometry(radioTronco * 0.9, radioTronco, altoTronco, 10), matVerde);
+    tronco.position.y = altoTronco / 2;
+    tronco.castShadow = true;
+    grupoEspecimen.add(tronco);
+
+    const tope = new THREE.Mesh(new THREE.SphereGeometry(radioTronco * 0.9, 10, 10), matVerde);
+    tope.position.y = altoTronco;
+    grupoEspecimen.add(tope);
+
+    const brazoIzq = new THREE.Group();
+    brazoIzq.position.set(-radioTronco * 0.8, altoTronco * 0.55, 0);
+    const b1H = new THREE.Mesh(new THREE.CylinderGeometry(radioTronco * 0.55, radioTronco * 0.55, 0.55 * escalaCrecimiento, 8), matVerde);
+    b1H.rotation.z = Math.PI / 2; b1H.position.x = -0.25 * escalaCrecimiento; brazoIzq.add(b1H);
+    const b1V = new THREE.Mesh(new THREE.CylinderGeometry(radioTronco * 0.5, radioTronco * 0.55, 0.85 * escalaCrecimiento, 8), matVerde);
+    b1V.position.set(-0.5 * escalaCrecimiento, 0.38 * escalaCrecimiento, 0); brazoIzq.add(b1V);
+    grupoEspecimen.add(brazoIzq);
+
+    const brazoDer = new THREE.Group();
+    brazoDer.position.set(radioTronco * 0.8, altoTronco * 0.42, 0);
+    const b2H = new THREE.Mesh(new THREE.CylinderGeometry(radioTronco * 0.55, radioTronco * 0.55, 0.5 * escalaCrecimiento, 8), matVerde);
+    b2H.rotation.z = Math.PI / 2; b2H.position.x = 0.22 * escalaCrecimiento; brazoDer.add(b2H);
+    const b2V = new THREE.Mesh(new THREE.CylinderGeometry(radioTronco * 0.5, radioTronco * 0.55, 0.75 * escalaCrecimiento, 8), matVerde);
+    b2V.position.set(0.45 * escalaCrecimiento, 0.35 * escalaCrecimiento, 0); brazoDer.add(b2V);
+    grupoEspecimen.add(brazoDer);
+
+    if (tasa > 0.45) {
+      const escalaFlor = (tasa - 0.4) * 1.6;
+      const florGrupo = new THREE.Group();
+      florGrupo.position.y = altoTronco + radioTronco * 0.75;
+      const matFlor = new THREE.MeshStandardMaterial({ color: 0xffeb3b, emissive: 0xf57f17, emissiveIntensity: 0.2 });
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        const pMesh = new THREE.Mesh(new THREE.ConeGeometry(0.1 * escalaFlor, 0.28 * escalaFlor, 6), matFlor);
+        pMesh.position.set(Math.cos(a) * 0.12 * escalaFlor, 0.1, Math.sin(a) * 0.12 * escalaFlor);
+        pMesh.rotation.x = Math.sin(a) * 0.6; pMesh.rotation.z = -Math.cos(a) * 0.6;
+        florGrupo.add(pMesh);
+      }
+      grupoEspecimen.add(florGrupo);
+    }
+  }
+  else if (plantaKey === "helecho") {
+    for (let i = 0; i < 10; i++) {
+      const fronda = new THREE.Group();
+      const angY = (i / 10) * Math.PI * 2;
+      const largoFronda = (1.5 + (i % 2) * 0.35) * escalaCrecimiento;
+      const talloF = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.04, largoFronda, 6), matVerde);
+      talloF.position.y = largoFronda / 2;
+      fronda.add(talloF);
+
+      for (let j = 2; j <= 10; j++) {
+        const t = j / 10;
+        const anchoPinna = (1 - t * 0.65) * 0.28 * escalaCrecimiento;
+        for (let lado of [-1, 1]) {
+          const pinnaGeo = new THREE.SphereGeometry(anchoPinna, 8, 6);
+          pinnaGeo.scale(1.6, 0.12, 0.55);
+          const pinna = new THREE.Mesh(pinnaGeo, matVerde);
+          pinna.position.set(lado * anchoPinna * 1.1, t * largoFronda, 0);
+          pinna.rotation.z = -lado * 0.25;
+          fronda.add(pinna);
+        }
+      }
+      fronda.rotation.y = angY;
+      fronda.rotation.x = 0.55 + (i % 2) * 0.2 + decaimiento * 0.85;
+      grupoEspecimen.add(fronda);
+    }
+  }
+  else if (plantaKey === "tropical") {
+    const altoTalloPrincipal = 0.9 * escalaCrecimiento;
+    const talloBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.18, altoTalloPrincipal, 10),
+      new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.9 })
+    );
+    talloBase.position.y = altoTalloPrincipal / 2;
+    grupoEspecimen.add(talloBase);
+
+    for (let i = 0; i < 7; i++) {
+      const rama = new THREE.Group();
+      rama.position.y = altoTalloPrincipal * 0.85;
+      const largoPeciolo = 1.1 * escalaCrecimiento;
+      const peciolo = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, largoPeciolo, 8), matVerde);
+      peciolo.position.y = largoPeciolo / 2;
+      rama.add(peciolo);
+
+      const hojaGeo = new THREE.SphereGeometry(0.45 * escalaCrecimiento, 12, 10);
+      hojaGeo.scale(0.85, 1.9, 0.08);
+      const hoja = new THREE.Mesh(hojaGeo, matVerde);
+      hoja.position.y = largoPeciolo + 0.4 * escalaCrecimiento;
+      hoja.rotation.x = 0.35 + decaimiento * 0.7;
+      rama.add(hoja);
+
+      rama.rotation.y = (i / 7) * Math.PI * 2;
+      rama.rotation.z = 0.45 + (i % 2) * 0.18 + decaimiento * 0.6;
+      grupoEspecimen.add(rama);
+    }
+
+    if (tasa > 0.5) {
+      const florTrop = new THREE.Mesh(
+        new THREE.ConeGeometry(0.14 * escalaCrecimiento, 0.6 * escalaCrecimiento, 6),
+        new THREE.MeshStandardMaterial({ color: 0xff5722, roughness: 0.4 })
+      );
+      florTrop.position.y = altoTalloPrincipal + 0.8 * escalaCrecimiento;
+      grupoEspecimen.add(florTrop);
+    }
+  }
+
+  plantaPrincipal3D.add(grupoEspecimen);
+}
+
+function construirPaisaje() {
+  if (!paisaje3D) return;
+  const cfg = zonas[zonaActual].paisaje;
+  while (paisaje3D.children.length > 0) paisaje3D.remove(paisaje3D.children[0]);
+
+  escena3D.background = new THREE.Color(modoNoche ? 0x0d1b3d : cfg.cieloTop);
+
+  const cieloGeo = new THREE.SphereGeometry(85, 32, 16);
+  const cieloMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false,
+    uniforms: {
+      topColor: { value: new THREE.Color(modoNoche ? 0x09122c : cfg.cieloTop) },
+      bottomColor: { value: new THREE.Color(modoNoche ? 0x1a237e : cfg.cieloBottom) },
+      offset: { value: 20 }, exponent: { value: 0.6 }
+    },
+    vertexShader: `varying vec3 vWorldPosition; void main() { vec4 wp = modelMatrix * vec4(position, 1.0); vWorldPosition = wp.xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent; varying vec3 vWorldPosition; void main() { float h = normalize(vWorldPosition + offset).y; gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0); }`
+  });
+  paisaje3D.add(new THREE.Mesh(cieloGeo, cieloMat));
+
+  const sueloGeo = new THREE.PlaneGeometry(60, 60, 50, 50);
+  const posiciones = sueloGeo.attributes.position;
+  for (let i = 0; i < posiciones.count; i++) {
+    const x = posiciones.getX(i), y = posiciones.getY(i);
+    const distCentro = Math.sqrt(x * x + (y + 1.2) * (y + 1.2));
+    let altura = 0;
+    if (distCentro > 3.0) {
+      if (cfg.tipoSuelo === "arena_tropical") altura = Math.sin(x * 0.2) * 0.1 + Math.cos(y * 0.2) * 0.1; 
+      else if (cfg.tipoSuelo === "paramo") {
+        altura = Math.sin(x * 0.35) * 0.35 + Math.cos(y * 0.35) * 0.35;
+        if (y > 8) altura += Math.abs(Math.sin(x * 0.18)) * 2.2;
+      } else if (cfg.tipoSuelo === "selva") altura = Math.sin(x * 0.3) * 0.15 + Math.cos(y * 0.3) * 0.15;
+      else if (cfg.tipoSuelo === "volcanica") altura = Math.sin(x * 0.5) * 0.28 + Math.cos(y * 0.5) * 0.28;
+    }
+    posiciones.setZ(i, altura);
+  }
+  sueloGeo.computeVertexNormals();
+
+  const suelo = new THREE.Mesh(sueloGeo, new THREE.MeshStandardMaterial({ color: cfg.suelo, roughness: 0.95 }));
+  suelo.rotation.x = -Math.PI / 2;
+  suelo.receiveShadow = true;
+  paisaje3D.add(suelo);
+
+  if (cfg.montanas) {
+    const numMontanas = cfg.tipoSuelo === "paramo" ? 7 : 6;
+    for (let i = 0; i < numMontanas; i++) {
+      const x = -22 + i * (44 / numMontanas) + (Math.random() - 0.5) * 2;
+      const altura = cfg.tipoSuelo === "paramo" ? 5 + Math.random() * 4 : 3.5 + Math.random() * 3;
+      const radio = 3 + Math.random() * 2.2;
+      const montana = new THREE.Mesh(
+        new THREE.ConeGeometry(radio, altura, 7),
+        new THREE.MeshStandardMaterial({ color: cfg.montanas, roughness: 1.0, flatShading: true })
+      );
+      montana.position.set(x, altura / 2 - 0.4, -18 - Math.random() * 5);
+      montana.rotation.y = Math.random() * Math.PI;
+      paisaje3D.add(montana);
+    }
+  }
+
+  if (cfg.agua) {
+    const aguaMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(50, 18, 30, 30),
+      new THREE.MeshStandardMaterial({ color: cfg.agua, transparent: true, opacity: 0.82, roughness: 0.15, metalness: 0.6 })
+    );
+    aguaMesh.rotation.x = -Math.PI / 2;
+    aguaMesh.position.set(0, 0.06, -9);
+    aguaMesh.name = "agua";
+    paisaje3D.add(aguaMesh);
+  }
+
+  construirVegetacionFondo(zonaActual);
+}
+
+function construirVegetacionFondo(zKey) {
+  function posLateral() {
+    const lado = Math.random() > 0.5 ? 1 : -1;
+    return { x: lado * (3.5 + Math.random() * 10), z: -5 + Math.random() * 7 };
+  }
+
+  if (zKey === "costa") {
+    for (let i = 0; i < 6; i++) {
+      const p = crearPalmera(), pos = posLateral();
+      p.position.set(pos.x, 0, pos.z); p.scale.setScalar(0.85 + Math.random() * 0.35);
+      paisaje3D.add(p);
+    }
+  } else if (zKey === "sierra") {
+    for (let i = 0; i < 14; i++) {
+      const a = crearArbusto(0x9e8c5c), pos = posLateral();
+      a.position.set(pos.x, 0, pos.z); a.scale.setScalar(0.5 + Math.random() * 0.3);
+      paisaje3D.add(a);
+    }
+  } else if (zKey === "amazonia") {
+    for (let i = 0; i < 12; i++) {
+      const arb = crearArbolAmazonico(), pos = posLateral();
+      arb.position.set(pos.x, 0, pos.z - 2); arb.scale.setScalar(0.9 + Math.random() * 0.8);
+      paisaje3D.add(arb);
+    }
+  } else if (zKey === "galapagos") {
+    for (let i = 0; i < 6; i++) {
+      const roca = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.4 + Math.random() * 0.3, 0),
+        new THREE.MeshStandardMaterial({ color: 0x262626, roughness: 0.95, flatShading: true })
+      );
+      const pos = posLateral();
+      roca.position.set(pos.x, 0.15, pos.z);
+      paisaje3D.add(roca);
+    }
+  }
+}
+
+function crearPalmera() {
+  const g = new THREE.Group();
+  const matT = new THREE.MeshStandardMaterial({ color: 0x8d6e63, roughness: 0.9 });
+  for (let i = 0; i < 8; i++) {
+    const t = i / 8;
+    const s = new THREE.Mesh(new THREE.CylinderGeometry(0.15 - t * 0.05, 0.17 - t * 0.05, 3/8, 8), matT);
+    s.position.set(Math.sin(t * 1.5) * 0.3, t * 3 + 0.18, 0); g.add(s);
+  }
+  const matH = new THREE.MeshStandardMaterial({ color: 0x2e7d32, side: THREE.DoubleSide });
+  for (let i = 0; i < 7; i++) {
+    const ang = (i / 7) * Math.PI * 2;
+    const h = new THREE.Mesh(new THREE.ConeGeometry(0.25, 1.7, 4), matH);
+    h.position.set(Math.sin(1.5) * 0.3 + Math.cos(ang) * 0.2, 3.1, Math.sin(ang) * 0.2);
+    h.rotation.z = Math.PI / 2 - 0.4; h.rotation.y = ang; g.add(h);
+  }
+  return g;
+}
+
+function crearArbolAmazonico() {
+  const g = new THREE.Group();
+  const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.25, 2.5, 8), new THREE.MeshStandardMaterial({ color: 0x3e2723 }));
+  tr.position.y = 1.25; g.add(tr);
+  const copa = new THREE.Mesh(new THREE.SphereGeometry(1.1, 7, 7), new THREE.MeshStandardMaterial({ color: 0x1b5e20, flatShading: true }));
+  copa.position.y = 2.8; g.add(copa);
+  return g;
+}
+
+function crearArbusto(color) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color, flatShading: true });
+  for (let i = 0; i < 5; i++) {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 6), mat);
+    e.position.set((Math.random() - 0.5) * 0.4, 0.18, (Math.random() - 0.5) * 0.4); g.add(e);
+  }
+  return g;
+}
+
+function actualizar3D(p, z, tasa, temp, luz, co2, agua, hum, reconstruirEscenario) {
+  if (!escena3D) return;
+  if (reconstruirEscenario) construirPaisaje();
+
+  const cfg = z.paisaje;
+  escena3D.fog.color.set(modoNoche ? 0x0d1b3d : cfg.niebla);
+  if (luzSolGlobal && luzAmbienteGlobal) {
+    luzSolGlobal.intensity = modoNoche ? 0.15 : (0.3 + (luz / 100) * 1.1);
+    luzAmbienteGlobal.intensity = modoNoche ? 0.25 : 0.65;
+  }
+
+  const sol = escena3D.getObjectByName("sol");
+  const halo = escena3D.getObjectByName("halo");
+  if (sol && halo) {
+    if (modoNoche) {
+      sol.material.color.set(0xe0e0e0); sol.scale.setScalar(0.65);
+      halo.material.color.set(0x90caf9); halo.scale.setScalar(0.9);
+    } else {
+      sol.material.color.set(0xfdd835); sol.scale.setScalar(0.5 + (luz / 100) * 0.7);
+      halo.material.color.set(0xfdd835); halo.scale.setScalar(0.9 + (luz / 100) * 0.8);
+    }
+  }
+
+  construirPlantaPrincipal3D(plantaActual, tasa, agua);
+
+  const numBurbujas = Math.floor(tasa * burbujas3D.length);
+  burbujas3D.forEach((b, i) => { b.visible = i < numBurbujas; });
+
+  const numCo2 = Math.floor((co2 / 100) * co2Particulas3D.length);
+  co2Particulas3D.forEach((c, i) => { c.visible = i < numCo2; });
+
+  const lloviendo = agua >= 75;
+  gotasLluvia3D.forEach(g => { g.visible = lloviendo; });
+}
+
+function animar3D() {
+  requestAnimationFrame(animar3D);
+  if (!escena3D || !renderer3D || !camara3D) return;
+  const t = Date.now() * 0.001;
+
+  const sol = escena3D.getObjectByName("sol");
+  const halo = escena3D.getObjectByName("halo");
+  if (sol) {
+    sol.position.x = 6 * Math.cos(t * 0.18);
+    sol.position.z = -8 + Math.sin(t * 0.18) * 2.5;
+    if (halo) halo.position.copy(sol.position);
+  }
+
+  if (plantaPrincipal3D) {
+    const especimen = plantaPrincipal3D.getObjectByName("especimenAnima");
+    if (especimen) {
+      const amp = 0.025 + tasaGlobal * 0.035;
+      especimen.rotation.z = Math.sin(t * 1.8) * amp;
+      const cabeza = especimen.getObjectByName("cabezaGirasol");
+      if (cabeza && sol && !modoNoche) {
+        cabeza.rotation.y = (sol.position.x / 6) * 0.35;
+      }
+    }
+  }
+
+  const agua = escena3D.getObjectByName("agua");
+  if (agua) {
+    const pos = agua.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      pos.setZ(i, Math.sin(pos.getX(i) * 0.5 + t * 1.8) * 0.12 + Math.cos(pos.getY(i) * 0.5 + t * 1.4) * 0.08);
+    }
+    pos.needsUpdate = true;
+    agua.geometry.computeVertexNormals();
+  }
+
+  burbujas3D.forEach(b => {
+    if (b.visible) {
+      b.position.y += b.userData.velocidad;
+      b.position.x += Math.sin(t * 2 + b.userData.offset) * 0.003;
+      if (b.position.y > 4.2) b.position.y = 0.4;
+    }
+  });
+
+  co2Particulas3D.forEach(c => {
+    if (c.visible) {
+      c.position.y -= c.userData.velocidad;
+      c.rotation.x += 0.02;
+      if (c.position.y < 0.4) c.position.y = 4.0;
+    }
+  });
+
+  gotasLluvia3D.forEach(g => {
+    if (g.visible) {
+      g.position.y -= g.userData.vel;
+      if (g.position.y < 0) g.position.y = 7.5;
+    }
+  });
+
+  controles3D.update();
+  renderer3D.render(escena3D, camara3D);
+}
+
+function cambiarCiclo() {
+  modoNoche = document.getElementById("toggleNoche").checked;
+  document.getElementById("textoCiclo").textContent = modoNoche
+    ? "Modo noche — Fase luminosa inactiva (respiración celular)"
+    : "Modo día — Fase luminosa y Ciclo de Calvin activos";
+  actualizarTodo(true);
+}
+
+function modoOptimo() {
+  const pl = plantas[plantaActual];
+  document.getElementById("luz").value = pl.pref.luz;
+  document.getElementById("co2").value = pl.pref.co2;
+  document.getElementById("agua").value = pl.pref.agua;
+  document.getElementById("temp").value = pl.tempOpt;
+  document.getElementById("hum").value = pl.pref.hum;
+  actualizarTodo(false);
+}
+
+function reiniciar() {
+  cancelarMision();
+  seleccionarPlantaUI("girasol");
+  seleccionarZonaUI("sierra");
+  modoNoche = false;
+  document.getElementById("toggleNoche").checked = false;
+  document.getElementById("textoCiclo").textContent = "Modo día — Fase luminosa y Ciclo de Calvin activos";
+  aplicarAmbiente();
+  actualizarTodo(true);
+}
+
+init();
+</script>
+
+</body>
+</html>
